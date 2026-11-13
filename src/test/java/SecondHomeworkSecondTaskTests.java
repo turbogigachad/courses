@@ -1,42 +1,67 @@
 import org.example.HomeworkOne;
 import org.example.Methods;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+
+@Tag("second_task")
 class SecondHomeworkSecondTaskTests {
 
-    @Test
+    @BeforeEach
+    void printStart() {
+        Methods.printStart();
+    }
+
+    @AfterEach
+    void printEnd() {
+        Methods.printEnd();
+    }
+
+    @Tag("boolean")
+    @RepeatedTest(10)
     void isEvenTest() {
         int n = Methods.getRandomNumberWithBound(200) - 50;
         boolean expected = n % 2 == 0;
         boolean actual = HomeworkOne.isEven(n);
-        Methods.report(actual == expected, "Четное ли число(" + n + ") → " + actual);
+        assertEquals(expected, actual,
+                "Число " + n + ": ожидалось " + expected + ", получено " + actual);
     }
 
-    @Test
+    @Tag("string")
+    @RepeatedTest(10)
     void checkAccessTest() {
         int age = Methods.getRandomNumberWithBound(40);
         String expected = age > 18 ? "Allowed" : "Denied";
         String actual = HomeworkOne.checkAccess(age);
-        Methods.report(expected.equals(actual), "Есть ли доступ (" + age + ") → " + actual);
+        assertEquals(expected, actual,
+                "Возраст " + age + ": ожидался доступ " + expected + ", получен " + actual);
     }
 
-    @Test
+    @Tag("boolean")
+    @RepeatedTest(10)
     void isPositiveTest() {
         int n = Methods.getRandomNumberWithBound(200) - 100;
         boolean expected = n >= 0;
         boolean actual = HomeworkOne.isPositive(n);
-        Methods.report(actual == expected, "Положительное ли число(" + n + ") → " + actual);
+        assertEquals(expected, actual,
+                "Число " + n + ": ожидалось " + expected + ", получено " + actual);
     }
 
-    @Test
+    @Tag("string")
+    @RepeatedTest(10)
     void getGradeTest() {
         int score = Methods.getRandomNumberWithBound(120) - 10;
         String expected;
@@ -45,13 +70,15 @@ class SecondHomeworkSecondTaskTests {
         else if (score >= 41 && score <= 60) expected = "C";
         else if (score >= 61 && score <= 80) expected = "B";
         else if (score >= 81 && score <= 100) expected = "A";
-        else expected = "Ошибка";
+        else expected = "Error";
 
         String actual = HomeworkOne.getGrade(score);
-        Methods.report(expected.equals(actual), "Резульат за баллы:(" + score + ") → " + actual);
+        assertEquals(expected, actual,
+                "Баллы " + score + ": ожидалась оценка " + expected + ", получена " + actual);
     }
 
-    @RepeatedTest(5)
+    @Tag("string")
+    @RepeatedTest(10)
     void blastOffTest() {
         int start = Methods.getRandomNumberWithBound(6) + 1;
 
@@ -62,19 +89,22 @@ class SecondHomeworkSecondTaskTests {
         expected.append("Поехали!");
 
         String actual = HomeworkOne.blastOff(start);
-        Methods.report(expected.toString().equals(actual),
-                "Отсчет(" + start + ") → \"" + actual + "\"");
+        assertEquals(expected.toString(), actual,
+                "Отсчет от " + start + ": ожидалось \"" + expected + "\", получено \"" + actual + "\"");
     }
 
-    @RepeatedTest(4)
+    @Tag("number")
+    @RepeatedTest(10)
     void sumToNTest() {
         int n = Methods.getRandomNumberWithBound(20) + 1;
         int expected = n * (n + 1) / 2;
         int actual = HomeworkOne.sumToN(n);
-        Methods.report(actual == expected, "Сумма чисел равна(" + n + ") → " + actual);
+        assertEquals(expected, actual,
+                "Сумма до " + n + ": ожидалось " + expected + ", получено " + actual);
     }
 
-    @RepeatedTest(3)
+    @Tag("boolean")
+    @RepeatedTest(10)
     void hasBugTest() {
         String[] messages = {
                 "без бага",
@@ -91,10 +121,12 @@ class SecondHomeworkSecondTaskTests {
         }
 
         boolean actual = HomeworkOne.hasBug(messages);
-        Methods.report(actual == expected, "Найден баг - " + actual);
+        assertEquals(expected, actual,
+                "Сообщения " + Arrays.toString(messages) + ": ожидалось " + expected + ", получено " + actual);
     }
 
-    @RepeatedTest(4)
+    @Tag("number")
+    @RepeatedTest(10)
     void findMaxTest() {
         int size = Methods.getRandomNumberWithBound(6) + 3;
         int[] arr = new int[size];
@@ -108,11 +140,13 @@ class SecondHomeworkSecondTaskTests {
         }
 
         int actual = HomeworkOne.findMax(arr);
-        Methods.report(actual == expected, "Найти наибольшее число(" + Arrays.toString(arr) + ") → " + actual);
+        assertEquals(expected, actual,
+                "Массив " + Arrays.toString(arr) + ": ожидался максимум " + expected + ", получен " + actual);
     }
 
+    @Tag("string")
     @ParameterizedTest
-    @ValueSource(ints = {1, 2, 5, 10, 0, -3})
+    @ValueSource(ints = {1, 2, 5, 10, 0, -3, 7, -10, 42, 100})
     void paramGetEvenInRangeTest(int start) {
         int end = start + Methods.getRandomNumberWithBound(10) + 5;
 
@@ -125,8 +159,8 @@ class SecondHomeworkSecondTaskTests {
         }
 
         String actual = HomeworkOne.getEvenInRange(start, end);
-        Methods.report(expected.toString().equals(actual),
-                "Четные числа из промежутка(" + start + ", " + end + ") → \"" + actual + "\"");
+        assertEquals(expected.toString(), actual,
+                "Диапазон (" + start + ", " + end + "): ожидалось \"" + expected + "\", получено \"" + actual + "\"");
     }
 
     static Stream<Arguments> reverseProvider() {
@@ -134,10 +168,17 @@ class SecondHomeworkSecondTaskTests {
                 Arguments.of((Object) new String[]{"й", "ц", "у"}),
                 Arguments.of((Object) new String[]{"йцу"}),
                 Arguments.of((Object) new String[]{}),
-                Arguments.of((Object) new String[]{"я", "ч", "с", "м"})
+                Arguments.of((Object) new String[]{"я", "ч", "с", "м"}),
+                Arguments.of((Object) new String[]{"а", "б"}),
+                Arguments.of((Object) new String[]{"раз", "два", "три", "четыре", "пять"}),
+                Arguments.of((Object) new String[]{"x"}),
+                Arguments.of((Object) new String[]{"1", "2", "3"}),
+                Arguments.of((Object) new String[]{"кот", "пёс"}),
+                Arguments.of((Object) new String[]{"один"})
         );
     }
 
+    @Tag("array")
     @ParameterizedTest
     @MethodSource("reverseProvider")
     void paramReverseTest(String[] original) {
@@ -148,8 +189,9 @@ class SecondHomeworkSecondTaskTests {
             expected[i] = original[original.length - 1 - i];
         }
 
-        Methods.report(Arrays.equals(expected, actual),
-                "Отобразить массив в обратном порядке(" + Arrays.toString(original) + ") → " + Arrays.toString(actual));
+        assertArrayEquals(expected, actual,
+                "Массив " + Arrays.toString(original) + ": ожидался разворот "
+                        + Arrays.toString(expected) + ", получен " + Arrays.toString(actual));
     }
 
     static Stream<List<Integer>> averageProvider() {
@@ -161,24 +203,20 @@ class SecondHomeworkSecondTaskTests {
                     }
                     return list;
                 })
-                .limit(5);
+                .limit(10);
     }
 
+    @Tag("number")
     @ParameterizedTest
     @MethodSource("averageProvider")
     void paramCalcAverageTest(List<Integer> list) {
-        if (list.isEmpty()) {
-            Methods.report(true, "значение пустое - пропускаем");
-            return;
-        }
-
         double expected = 0;
         for (int num : list) expected += num;
         expected /= list.size();
 
         double actual = HomeworkOne.calcAverage(list);
-        Methods.report(Math.abs(expected - actual) < 0.0001,
-                "Посчитать среднее(" + list + ") → " + actual);
+        assertEquals(expected, actual, 0.0001,
+                "Список " + list + ": ожидалось среднее " + expected + ", получено " + actual);
     }
 
     static Stream<List<String>> removeNameProvider() {
@@ -186,10 +224,17 @@ class SecondHomeworkSecondTaskTests {
                 Arrays.asList("Миша", "Вася", "Петя", "Коля"),
                 Arrays.asList("Петя", "Коля"),
                 Arrays.asList("Вася"),
-                new ArrayList<>()
+                new ArrayList<>(),
+                Arrays.asList("Миша"),
+                Arrays.asList("Миша", "Миша", "Оля"),
+                Arrays.asList("Оля", "Таня", "Миша", "Ира"),
+                Arrays.asList("Саша", "Даша"),
+                Arrays.asList("Миша", "Саша", "Миша"),
+                Arrays.asList("Коля")
         );
     }
 
+    @Tag("list")
     @ParameterizedTest
     @MethodSource("removeNameProvider")
     void paramRemoveSpecificNameTest(List<String> names) {
@@ -203,7 +248,7 @@ class SecondHomeworkSecondTaskTests {
         }
 
         List<String> actual = HomeworkOne.removeSpecificName(new ArrayList<>(names), nameToRemove);
-        Methods.report(expected.equals(actual),
-                "Убрать из массива имя(" + names + ", \"" + nameToRemove + "\") → " + actual);
+        assertEquals(expected, actual,
+                "Список " + names + ", убрать \"" + nameToRemove + "\": ожидался " + expected + ", получен " + actual);
     }
 }
