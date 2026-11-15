@@ -16,7 +16,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 @Tag("api")
 @Tag("fifth_homework")
-class FifthHomeworkApiTests {
+class FourthHomeWorkSecondTaskApiTests {
 
     private static final String BASE_URI = "http://localhost:8080";
     private static final String ADMIN = "admin";
@@ -57,8 +57,6 @@ class FifthHomeworkApiTests {
         return id;
     }
 
-    // ---------- POST /goods/add: коды 200, 400 ----------
-
     @Test
     void addGoodValidDataReturns200Test() {
         int id = addGood("Товар для добавления", 120.5);
@@ -98,8 +96,6 @@ class FifthHomeworkApiTests {
                 .body("price", equalTo("Price can not be less, than 0"));
     }
 
-    // ---------- GET /goods/{id}: коды 200, 404 ----------
-
     @Test
     void getExistingGoodReturns200Test() {
         int id = addGood("Товар для чтения", 77.0);
@@ -116,6 +112,7 @@ class FifthHomeworkApiTests {
     }
 
     @Test
+    //только прила отдает 500, я оставил падающий, в целом чтобы он зеленый стал можно код поменять на 500
     void getNonExistentGoodReturns404Test() {
         given()
                 .auth().basic(ADMIN, PASSWORD)
@@ -124,8 +121,6 @@ class FifthHomeworkApiTests {
                 .then()
                 .statusCode(404);
     }
-
-    // ---------- DELETE /goods/{id}: коды 200, 404 ----------
 
     @Test
     void deleteExistingGoodReturns200Test() {
@@ -156,8 +151,6 @@ class FifthHomeworkApiTests {
                 .then()
                 .statusCode(404);
     }
-
-    // ---------- PATCH /goods/{id}: коды 200, 400, 404 ----------
 
     @Test
     void patchExistingGoodReturns200Test() {
@@ -202,8 +195,6 @@ class FifthHomeworkApiTests {
                 .then()
                 .statusCode(404);
     }
-
-    // ---------- GET /goods/list: код 200 ----------
 
     @Test
     void getGoodsListReturns200Test() {
