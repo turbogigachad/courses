@@ -37,7 +37,6 @@ class FourthHomeworkApiTests {
 
     @AfterEach
     void cleanUp() {
-        // удаляем созданный товар; без проверки статуса — в приложении ловушка: DELETE id 50-53 всегда отдает 500
         if (createdGoodId > 0) {
             given()
                     .auth().basic(ADMIN, PASSWORD)
