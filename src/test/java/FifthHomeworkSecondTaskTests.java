@@ -90,6 +90,7 @@ class FifthHomeworkSecondTaskTests {
     }
 
     // 2.4. Проверить сохранение товаров в корзине после обновления страницы
+    @Tag("bug")
     @Test
     void cartShouldKeepProductsAfterPageRefreshTest() {
         open("/");
