@@ -10,6 +10,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import java.util.Random;
 import java.util.stream.IntStream;
@@ -56,7 +57,7 @@ public class Methods {
         return given()
                 .auth().basic(SHOP_ADMIN, SHOP_PASSWORD)
                 .contentType(ContentType.JSON)
-                .body("{\"name\":\"" + name + "\",\"price\":" + price + "}")
+                .body(Map.of("name", name, "price", price))
                 .when()
                 .post(SHOP_BASE_URL + "/goods/add")
                 .then()

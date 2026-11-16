@@ -14,15 +14,30 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.27.3")
     implementation("io.rest-assured:rest-assured:5.5.6")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("com.codeborne:selenide:7.18.2")
 }
 
 tasks.test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags("fail")
+    }
     testLogging {
         showStandardStreams = true
         events("passed", "skipped", "failed")
     }
+}
+
+tasks.register<Test>("runFailingTests") {
+    group = "verification"
+    description = "Падающие тесты(по заданию)"
+    useJUnitPlatform { includeTags("fail") }
+}
+
+tasks.register<Test>("runOnlyGreenTests") {
+    group = "verification"
+    description = "Прогон без падающих тестов и без багов приложения"
+    useJUnitPlatform { excludeTags("fail", "bug") }
 }
 
 tasks.register("runAllTests") {
@@ -54,8 +69,11 @@ tasks.register<Test>("runListTests") {
 
 tasks.register<Test>("runApiTests") {
     group = "verification"
-    description = "Все API-тесты (тег api)"
-    useJUnitPlatform { includeTags("api") }
+    description = "Все API-тесты (тег api, кроме требующих пустой каталог)"
+    useJUnitPlatform {
+        includeTags("api")
+        excludeTags("fail", "bug", "requires_empty_catalog")
+    }
 }
 
 tasks.register<Test>("runStringTests") {

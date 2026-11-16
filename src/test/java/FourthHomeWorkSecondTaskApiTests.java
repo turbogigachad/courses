@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -46,7 +47,7 @@ class FourthHomeWorkSecondTaskApiTests {
         int id = given()
                 .auth().basic(ADMIN, PASSWORD)
                 .contentType(ContentType.JSON)
-                .body("{\"name\":\"" + name + "\",\"price\":" + price + "}")
+                .body(Map.of("name", name, "price", price))
                 .when()
                 .post(BASE_URI + "/goods/add")
                 .then()
@@ -111,6 +112,7 @@ class FourthHomeWorkSecondTaskApiTests {
                 .body("price", equalTo(77.0f));
     }
 
+    @Tag("bug")
     @Test
     //только прила отдает 500, я оставил падающий, в целом чтобы он зеленый стал можно код поменять на 500
     void getNonExistentGoodReturns404Test() {
