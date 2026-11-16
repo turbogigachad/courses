@@ -2,6 +2,7 @@ import org.example.HomeworkOne;
 import org.example.Methods;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -27,8 +28,7 @@ class ThirdHomeworkAssertTests {
     void isEvenAssertTest() {
         int n = 8;
         boolean actual = HomeworkOne.isEven(n);
-        assertTrue(actual,
-                "Ожидалось: число " + n + " четное (true), получено: " + actual);
+        assertTrue(actual, "Проверка четности числа: " + n);
     }
 
     @Test
@@ -36,8 +36,7 @@ class ThirdHomeworkAssertTests {
         int score = 75;
         String expected = "B";
         String actual = HomeworkOne.getGrade(score);
-        assertEquals(expected, actual,
-                "Ожидалась оценка " + expected + " за " + score + " баллов, получено: " + actual);
+        assertEquals(expected, actual, "Проверка оценки за " + score + " баллов");
     }
 
     @Test
@@ -45,16 +44,15 @@ class ThirdHomeworkAssertTests {
         List<String> names = new ArrayList<>(Arrays.asList("Миша", "Вася", "Петя", "Коля"));
         List<String> expected = Arrays.asList("Вася", "Петя", "Коля");
         List<String> actual = HomeworkOne.removeSpecificName(names, "Миша");
-        assertEquals(expected, actual,
-                "Ожидался список " + expected + ", получен: " + actual);
+        assertEquals(expected, actual, "Проверка списка после удаления имени «Миша»");
     }
 
+    @Tag("fail")
     @Test
     void sumToNWrongExpectationAssertTest() {
         int n = 5;
         int expected = 100; // заведомо неверное ожидание — ассерт должен упасть
         int actual = HomeworkOne.sumToN(n);
-        assertEquals(expected, actual,
-                "Ожидалась сумма " + expected + " для n = " + n + ", получено: " + actual);
+        assertEquals(expected, actual, "Проверка суммы чисел от 1 до " + n + " с заведомо неверным ожиданием");
     }
 }

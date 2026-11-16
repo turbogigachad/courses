@@ -110,6 +110,7 @@ class FifthHomeworkTests {
     }
 
     // 1.4. Проверить сохранение товаров в корзине после обновления страницы
+    @Tag("bug") //не остаются данные после рефреша
     @Test
     void cartShouldKeepProductsAfterPageRefreshTest() {
         driver.get(BASE_URL + "/");

@@ -61,6 +61,7 @@ class SecondHomeworkSecondTaskTests {
     }
 
     @Tag("string")
+    @Tag("fail")
     @RepeatedTest(10)
     void getGradeTest() {
         int score = Methods.getRandomNumberWithBound(120) - 10;
