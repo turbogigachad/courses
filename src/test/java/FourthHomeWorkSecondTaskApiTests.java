@@ -19,15 +19,16 @@ import static org.hamcrest.Matchers.notNullValue;
 @Tag("fifth_homework")
 class FourthHomeWorkSecondTaskApiTests {
 
-    private static final String BASE_URI = "http://localhost:8080";
-    private static final String ADMIN = "admin";
-    private static final String PASSWORD = "secret123";
+    private static final String BASE_URI = org.example.Config.apiUrl();
+    private static final String ADMIN = org.example.Config.adminLogin();
+    private static final String PASSWORD = org.example.Config.adminPassword();
     private static final int NON_EXISTENT_ID = 99999999;
 
     private final List<Integer> createdIds = new ArrayList<>();
 
     @BeforeEach
     void printStart() {
+        org.example.Config.printConfig();
         Methods.printStart();
     }
 

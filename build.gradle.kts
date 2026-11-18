@@ -37,7 +37,7 @@ tasks.register<Test>("runFailingTests") {
 tasks.register<Test>("runOnlyGreenTests") {
     group = "verification"
     description = "Прогон без падающих тестов и без багов приложения"
-    useJUnitPlatform { excludeTags("fail", "bug") }
+    useJUnitPlatform { excludeTags("fail", "bug", "requires_empty_catalog") }
 }
 
 tasks.register("runAllTests") {

@@ -19,9 +19,6 @@ import static io.restassured.RestAssured.given;
 
 public class Methods {
 
-    private static final String SHOP_BASE_URL = "http://localhost:8080";
-    private static final String SHOP_ADMIN = "admin";
-    private static final String SHOP_PASSWORD = "secret123";
 
     public static void printStart() {
         System.out.println("========================Test method start");
@@ -55,11 +52,11 @@ public class Methods {
     // создание товара
     public static int createGoodViaApi(String name, double price) {
         return given()
-                .auth().basic(SHOP_ADMIN, SHOP_PASSWORD)
+                .auth().basic(Config.adminLogin(), Config.adminPassword())
                 .contentType(ContentType.JSON)
                 .body(Map.of("name", name, "price", price))
                 .when()
-                .post(SHOP_BASE_URL + "/goods/add")
+                .post(Config.apiUrl() + "/goods/add")
                 .then()
                 .statusCode(200)
                 .extract()
@@ -69,17 +66,32 @@ public class Methods {
     // удаление товара
     public static void deleteGoodViaApi(int id) {
         given()
-                .auth().basic(SHOP_ADMIN, SHOP_PASSWORD)
+                .auth().basic(Config.adminLogin(), Config.adminPassword())
                 .when()
-                .delete(SHOP_BASE_URL + "/goods/" + id);
+                .delete(Config.apiUrl() + "/goods/" + id);
+    }
+
+    // стартовый товар из конфига: создаем, если его нет на стенде
+    public static void ensureInitialProductViaApi() {
+        List<Integer> ids = given()
+                .auth().basic(Config.adminLogin(), Config.adminPassword())
+                .when()
+                .get(Config.apiUrl() + "/goods/list")
+                .then()
+                .statusCode(200)
+                .extract()
+                .path("goods.findAll { it.name == '" + Config.initialProductName() + "' }.id");
+        if (ids.isEmpty()) {
+            createGoodViaApi(Config.initialProductName(), Config.initialProductPrice());
+        }
     }
 
     // удаление всех товаров с указанным именем
     public static void deleteGoodsByNameViaApi(String name) {
         List<Integer> ids = given()
-                .auth().basic(SHOP_ADMIN, SHOP_PASSWORD)
+                .auth().basic(Config.adminLogin(), Config.adminPassword())
                 .when()
-                .get(SHOP_BASE_URL + "/goods/list")
+                .get(Config.apiUrl() + "/goods/list")
                 .then()
                 .statusCode(200)
                 .extract()
@@ -91,6 +103,8 @@ public class Methods {
 
     // создание ChromeDriver
     public static WebDriver setUpChrome() {
+        Config.printConfig();
+        ensureInitialProductViaApi();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless=new", "--window-size=1280,900", "--no-sandbox", "--disable-dev-shm-usage");
         printStart();
@@ -99,7 +113,7 @@ public class Methods {
 
     // вейтер
     public static WebDriverWait createWait(WebDriver driver) {
-        return new WebDriverWait(driver, Duration.ofSeconds(10));
+        return new WebDriverWait(driver, Duration.ofMillis(Config.elementTimeoutMs()));
     }
 
     // выход из драйвера
@@ -112,10 +126,12 @@ public class Methods {
 
     // сетап драйвера
     public static void setUpSelenide() {
-        Configuration.baseUrl = SHOP_BASE_URL;
+        Config.printConfig();
+        ensureInitialProductViaApi();
+        Configuration.baseUrl = Config.standUrl();
         Configuration.headless = true;
         Configuration.browserSize = "1280x900";
-        Configuration.timeout = 10_000;
+        Configuration.timeout = Config.elementTimeoutMs();
         printStart();
     }
 

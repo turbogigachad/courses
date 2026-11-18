@@ -24,14 +24,15 @@ import static org.hamcrest.Matchers.hasItem;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FourthHomeworkApiTests {
 
-    private static final String BASE_URI = "http://localhost:8080";
-    private static final String ADMIN = "admin";
-    private static final String PASSWORD = "secret123";
+    private static final String BASE_URI = org.example.Config.apiUrl();
+    private static final String ADMIN = org.example.Config.adminLogin();
+    private static final String PASSWORD = org.example.Config.adminPassword();
 
     private int createdGoodId = -1;
 
     @BeforeEach
     void printStart() {
+        org.example.Config.printConfig();
         org.example.Methods.printStart();
     }
 
@@ -63,6 +64,7 @@ class FourthHomeworkApiTests {
 
     @Test
     @Order(1)
+    @Tag("requires_empty_catalog")
     void getGoodsListEmptyWithGivenWhenThenTest() {
         given()
                 .auth().basic(ADMIN, PASSWORD)
@@ -75,6 +77,7 @@ class FourthHomeworkApiTests {
 
     @Test
     @Order(2)
+    @Tag("requires_empty_catalog")
     void getGoodsListEmptyWithRequestSpecificationTest() {
         RequestSpecification spec = new RequestSpecBuilder()
                 .setBaseUri(BASE_URI)

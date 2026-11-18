@@ -1,4 +1,5 @@
 import com.codeborne.selenide.SelenideElement;
+import org.example.Config;
 import org.example.Methods;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,9 +20,6 @@ import static com.codeborne.selenide.Selenide.refresh;
 @Tag("ui")
 @Tag("selenide_homework")
 class FifthHomeworkSecondTaskTests {
-
-    private static final String ADMIN = "admin";
-    private static final String PASSWORD = "secret123";
 
     private String createdGoodName;
 
@@ -52,7 +50,7 @@ class FifthHomeworkSecondTaskTests {
     void addProductViaAdminAndCheckOnStorefrontTest() {
         createdGoodName = "товар " + System.currentTimeMillis();
 
-        loginToAdmin(ADMIN, PASSWORD);
+        loginToAdmin(Config.adminLogin(), Config.adminPassword());
         $("#n-name").shouldBe(visible).setValue(createdGoodName);
         $("#n-price").setValue("99");
         $("#add-btn").click();
@@ -108,17 +106,21 @@ class FifthHomeworkSecondTaskTests {
     // 2.5. Добавить в корзину товаров более чем на 300 рублей и нажать «Оформить заказ»
     @Test
     void orderOver300RublesShowsJsAlertTest() {
-        open("/");
+        // стартовый товар из конфига создан в setUp
+        String name = Config.initialProductName();
+        int qty = 5;
+        int sum = (int) (Config.initialProductPrice() * qty);
 
-        SelenideElement card = $(".product-card[data-name='Стакан']").shouldBe(visible);
-        card.$(".qty-input").setValue("5");
+        open("/");
+        SelenideElement card = $(".product-card[data-name='" + name + "']").shouldBe(visible);
+        card.$(".qty-input").setValue(String.valueOf(qty));
         card.$("button[data-action='add-to-cart']").click();
 
         $("#open-cart-btn").click();
-        $("#total-price").shouldHave(exactText("335"));
+        $("#total-price").shouldHave(exactText(String.valueOf(sum)));
 
         $("#makeOrder").click();
 
-        confirm("[SmartShop]: Денег не хватает! Сумма 335 ₽ превышает лимит 300 ₽.");
+        confirm("[SmartShop]: Денег не хватает! Сумма " + sum + " ₽ превышает лимит 300 ₽.");
     }
 }

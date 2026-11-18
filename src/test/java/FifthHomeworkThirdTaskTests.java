@@ -1,4 +1,5 @@
 import com.codeborne.selenide.SelenideElement;
+import org.example.Config;
 import org.example.Methods;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,10 +22,6 @@ import static io.restassured.RestAssured.given;
 @Tag("ui")
 @Tag("fifth_homework_third_task")
 class FifthHomeworkThirdTaskTests {
-
-    private static final String BASE_URL = "http://localhost:8080";
-    private static final String ADMIN = "admin";
-    private static final String PASSWORD = "secret123";
 
     // 3.6. Созданные в тестах товары удаляются в @AfterEach
     private final List<Integer> createdGoodIds = new ArrayList<>();
@@ -66,12 +63,15 @@ class FifthHomeworkThirdTaskTests {
     // 3.1. Добавить три единицы товара в корзину и оплатить их (сумма <= 300). Проверить уведомление об обработке заказа
     @Test
     void addThreeItemsAndPayOrderTest() {
-        open("/");
+        // стартовый товар из конфига создан в setUp
+        int qty = 3;
+        int total = (int) (Config.initialProductPrice() * qty); // должно быть <= 300
 
-        addToCart("товар1", 3); // 3 x 25 = 75 руб — в пределах лимита
+        open("/");
+        addToCart(Config.initialProductName(), qty);
         $("#open-cart-btn").click();
         $$("#cart-items .cart-item").shouldHave(size(1));
-        $("#total-price").shouldHave(exactText("75"));
+        $("#total-price").shouldHave(exactText(String.valueOf(total)));
 
         $("#makeOrder").click();
 
@@ -112,7 +112,7 @@ class FifthHomeworkThirdTaskTests {
     void addProductInAdminShowsNotificationTest() {
         String name = "Товар-тост " + System.currentTimeMillis();
 
-        loginToAdmin(ADMIN, PASSWORD);
+        loginToAdmin(Config.adminLogin(), Config.adminPassword());
         $("#n-name").shouldBe(visible).setValue(name);
         $("#n-price").setValue("10");
         $("#add-btn").click();
@@ -122,9 +122,9 @@ class FifthHomeworkThirdTaskTests {
 
         // выписываем айдишки товаров чтобы удалить
         List<Integer> ids = given()
-                .auth().basic(ADMIN, PASSWORD)
+                .auth().basic(Config.adminLogin(), Config.adminPassword())
                 .when()
-                .get(BASE_URL + "/goods/list")
+                .get(Config.apiUrl() + "/goods/list")
                 .then()
                 .statusCode(200)
                 .extract()
@@ -139,7 +139,7 @@ class FifthHomeworkThirdTaskTests {
         int id = createGoodViaApi("Товар до правки", 40);
         String newName = "Товар после правки";
 
-        loginToAdmin(ADMIN, PASSWORD);
+        loginToAdmin(Config.adminLogin(), Config.adminPassword());
         $("#nm-" + id).shouldBe(visible).setValue(newName);
         $("#pr-" + id).setValue("150");
         $("button[data-action='update'][data-id='" + id + "']").click();

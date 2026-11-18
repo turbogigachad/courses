@@ -1,3 +1,4 @@
+import org.example.Config;
 import org.example.Methods;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,10 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag("selenium_homework")
 class FifthHomeworkTests {
 
-    private static final String BASE_URL = "http://localhost:8080";
-    private static final String ADMIN_URL = BASE_URL + "/admin";
-    private static final String ADMIN = "admin";
-    private static final String PASSWORD = "secret123";
 
     private WebDriver driver;
     private WebDriverWait wait;
@@ -44,7 +41,7 @@ class FifthHomeworkTests {
     }
 
     private void loginToAdmin(String login, String password) {
-        driver.get(ADMIN_URL);
+        driver.get(Config.standUrl() + "/admin");
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("username")))
                 .sendKeys(login);
         driver.findElement(By.name("password")).sendKeys(password);
@@ -56,7 +53,7 @@ class FifthHomeworkTests {
     void addProductViaAdminAndCheckOnStorefrontTest() {
         createdGoodName = "UI-товар " + System.currentTimeMillis();
 
-        loginToAdmin(ADMIN, PASSWORD);
+        loginToAdmin(Config.adminLogin(), Config.adminPassword());
         wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("n-name")))
                 .sendKeys(createdGoodName);
         driver.findElement(By.id("n-price")).sendKeys("99");
@@ -64,7 +61,7 @@ class FifthHomeworkTests {
         wait.until(ExpectedConditions.textToBePresentInElementLocated(
                 By.id("toast-container"), "Товар успешно добавлен"));
 
-        driver.get(BASE_URL + "/");
+        driver.get(Config.standUrl() + "/");
 
         WebElement productName = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector(".product-card[data-name='" + createdGoodName + "'] h4")));
@@ -77,7 +74,7 @@ class FifthHomeworkTests {
     // 1.2. Добавить товар в корзину и проверить, что он отображается
     @Test
     void addProductToCartAndCheckItIsShownTest() {
-        driver.get(BASE_URL + "/");
+        driver.get(Config.standUrl() + "/");
 
         WebElement firstCard = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector(".product-card")));
@@ -113,7 +110,7 @@ class FifthHomeworkTests {
     @Tag("bug") //не остаются данные после рефреша
     @Test
     void cartShouldKeepProductsAfterPageRefreshTest() {
-        driver.get(BASE_URL + "/");
+        driver.get(Config.standUrl() + "/");
 
         WebElement firstCard = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector(".product-card")));
