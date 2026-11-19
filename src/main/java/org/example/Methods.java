@@ -2,6 +2,11 @@ package org.example;
 
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.logevents.SelenideLogger;
+import io.qameta.allure.Step;
+import io.qameta.allure.restassured.AllureRestAssured;
+import io.qameta.allure.selenide.AllureSelenide;
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -11,14 +16,17 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import java.util.Random;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 
 public class Methods {
 
+    static {
+        RestAssured.filters(new AllureRestAssured());
+    }
 
     public static void printStart() {
         System.out.println("========================Test method start");
@@ -36,7 +44,7 @@ public class Methods {
 
     public static Stream<Integer> randomScores() {
         Random r = new Random();
-        return IntStream.generate(() -> r.nextInt(101)) // 0..100
+        return IntStream.generate(() -> r.nextInt(101))
                 .limit(10)
                 .boxed();
     }
@@ -49,7 +57,7 @@ public class Methods {
         }
     }
 
-    // создание товара
+    @Step("POST /goods/add: создать товар '{name}' с ценой {price}")
     public static int createGoodViaApi(String name, double price) {
         return given()
                 .auth().basic(Config.adminLogin(), Config.adminPassword())
@@ -63,7 +71,7 @@ public class Methods {
                 .path("data.id");
     }
 
-    // удаление товара
+    @Step("DELETE /goods/{id}: удалить товар")
     public static void deleteGoodViaApi(int id) {
         given()
                 .auth().basic(Config.adminLogin(), Config.adminPassword())
@@ -71,7 +79,7 @@ public class Methods {
                 .delete(Config.apiUrl() + "/goods/" + id);
     }
 
-    // стартовый товар из конфига: создаем, если его нет на стенде
+    @Step("Создать стартовый товар из конфигурации, если он отсутствует")
     public static void ensureInitialProductViaApi() {
         List<Integer> ids = given()
                 .auth().basic(Config.adminLogin(), Config.adminPassword())
@@ -86,7 +94,7 @@ public class Methods {
         }
     }
 
-    // удаление всех товаров с указанным именем
+    @Step("Удалить все товары с названием '{name}'")
     public static void deleteGoodsByNameViaApi(String name) {
         List<Integer> ids = given()
                 .auth().basic(Config.adminLogin(), Config.adminPassword())
@@ -101,7 +109,7 @@ public class Methods {
         }
     }
 
-    // создание ChromeDriver
+    @Step("Запустить Chrome для Selenium-теста")
     public static WebDriver setUpChrome() {
         Config.printConfig();
         ensureInitialProductViaApi();
@@ -111,12 +119,11 @@ public class Methods {
         return new ChromeDriver(options);
     }
 
-    // вейтер
     public static WebDriverWait createWait(WebDriver driver) {
         return new WebDriverWait(driver, Duration.ofMillis(Config.elementTimeoutMs()));
     }
 
-    // выход из драйвера
+    @Step("Закрыть Selenium-браузер")
     public static void tearDown(WebDriver driver) {
         if (driver != null) {
             driver.quit();
@@ -124,7 +131,7 @@ public class Methods {
         printEnd();
     }
 
-    // сетап драйвера
+    @Step("Настроить Selenide и Allure Selenide Listener")
     public static void setUpSelenide() {
         Config.printConfig();
         ensureInitialProductViaApi();
@@ -132,10 +139,12 @@ public class Methods {
         Configuration.headless = true;
         Configuration.browserSize = "1280x900";
         Configuration.timeout = Config.elementTimeoutMs();
+        SelenideLogger.addListener("AllureSelenide",
+                new AllureSelenide().screenshots(true).savePageSource(true));
         printStart();
     }
 
-    // закрытие браузера
+    @Step("Закрыть Selenide-браузер")
     public static void tearDownSelenide() {
         Selenide.closeWebDriver();
         printEnd();

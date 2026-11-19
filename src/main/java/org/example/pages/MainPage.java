@@ -1,7 +1,9 @@
 package org.example.pages;
 
+import com.codeborne.selenide.DragAndDropOptions;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
+import io.qameta.allure.Step;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.exactText;
@@ -12,7 +14,9 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.refresh;
 
+// Главная страница магазина
 public class MainPage {
 
     private final SelenideElement mainTitle = $("#main-title");
@@ -24,16 +28,19 @@ public class MainPage {
     private final SelenideElement cartModal = $("#cartModal");
     private final SelenideElement closeCartButton = $("#close-modal");
     private final ElementsCollection cartItems = $$("#cart-items .cart-item");
+    private final SelenideElement emptyCartMessage = $("#empty-cart");
     private final SelenideElement cartCount = $("#cart-count");
     private final SelenideElement totalPrice = $("#total-price");
     private final SelenideElement makeOrderButton = $("#makeOrder");
     private final SelenideElement toastContainer = $("#toast-container");
 
+    @Step("Открыть главную страницу магазина")
     public MainPage openPage() {
         open("/");
         return shouldBeOpened();
     }
 
+    @Step("Проверить видимость основных элементов витрины")
     public MainPage shouldBeOpened() {
         mainTitle.shouldBe(visible);
         adminLink.shouldBe(visible);
@@ -44,11 +51,13 @@ public class MainPage {
         return this;
     }
 
+    @Step("Перейти в администрирование")
     public MainPage clickAdministration() {
         adminLink.shouldBe(visible).click();
         return this;
     }
 
+    @Step("Установить товару с индексом {productIndex} количество {quantity}")
     public MainPage setProductQuantity(int productIndex, int quantity) {
         quantityInputs.get(productIndex)
                 .shouldBe(visible)
@@ -57,6 +66,7 @@ public class MainPage {
         return this;
     }
 
+    @Step("Установить товару '{productName}' количество {quantity}")
     public MainPage setProductQuantity(String productName, int quantity) {
         getProductCard(productName).$(".qty-input")
                 .shouldBe(visible)
@@ -65,12 +75,14 @@ public class MainPage {
         return this;
     }
 
+    @Step("Добавить в корзину товар с индексом {productIndex}")
     public MainPage addProductToCart(int productIndex) {
         productCards.get(productIndex).shouldBe(visible);
         addToCartButtons.get(productIndex).shouldBe(visible).click();
         return this;
     }
 
+    @Step("Добавить в корзину {quantity} шт. товара '{productName}'")
     public MainPage addProductToCart(String productName, int quantity) {
         setProductQuantity(productName, quantity);
         getProductCard(productName).$("button[data-action='add-to-cart']")
@@ -79,6 +91,23 @@ public class MainPage {
         return this;
     }
 
+    @Step("Добавить первый товар в корзину")
+    public String addFirstProductToCart() {
+        SelenideElement firstCard = productCards.first().shouldBe(visible);
+        String productName = firstCard.attr("data-name");
+        firstCard.$("button[data-action='add-to-cart']").shouldBe(visible).click();
+        return productName;
+    }
+
+    @Step("Перетащить первый товар в корзину")
+    public String dragFirstProductToCart() {
+        SelenideElement firstCard = productCards.first().shouldBe(visible);
+        String productName = firstCard.attr("data-name");
+        firstCard.dragAndDrop(DragAndDropOptions.to(openCartButton));
+        return productName;
+    }
+
+    @Step("Открыть корзину")
     public MainPage openCart() {
         openCartButton.shouldBe(visible).click();
         cartModal.shouldBe(visible);
@@ -88,12 +117,14 @@ public class MainPage {
         return this;
     }
 
+    @Step("Закрыть корзину")
     public MainPage closeCart() {
         closeCartButton.shouldBe(visible).click();
         cartModal.shouldBe(hidden);
         return this;
     }
 
+    @Step("Удалить из корзины товар с индексом {itemIndex}")
     public MainPage removeCartItem(int itemIndex) {
         cartItems.get(itemIndex)
                 .shouldBe(visible)
@@ -103,21 +134,31 @@ public class MainPage {
         return this;
     }
 
+    @Step("Нажать «Оформить заказ»")
     public MainPage makeOrder() {
         makeOrderButton.shouldBe(visible).click();
         return this;
     }
 
+    @Step("Обновить страницу магазина")
+    public MainPage refreshPage() {
+        refresh();
+        return shouldBeOpened();
+    }
+
+    @Step("Проверить, что товар '{productName}' отображается на витрине")
     public MainPage shouldHaveProduct(String productName) {
         productCards.filterBy(text(productName)).first().shouldBe(visible);
         return this;
     }
 
+    @Step("Проверить, что товар '{productName}' отображается в корзине")
     public MainPage shouldHaveCartItem(String productName) {
         cartItems.filterBy(text(productName)).first().shouldBe(visible);
         return this;
     }
 
+    @Step("Проверить общую стоимость корзины: {expectedPrice}")
     public MainPage shouldHaveTotalPrice(String expectedPrice) {
         totalPrice.shouldBe(visible).shouldHave(exactText(expectedPrice));
         return this;
@@ -127,6 +168,7 @@ public class MainPage {
         return productCards.filterBy(attribute("data-name", productName)).first();
     }
 
+    @Step("Проверить наличие карточек товаров")
     public ElementsCollection getProductCards() {
         productCards.first().shouldBe(visible);
         return productCards;
@@ -138,6 +180,10 @@ public class MainPage {
 
     public SelenideElement getMainTitle() {
         return mainTitle;
+    }
+
+    public SelenideElement getEmptyCartMessage() {
+        return emptyCartMessage;
     }
 
     public SelenideElement getCartCount() {

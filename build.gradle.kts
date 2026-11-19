@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("io.qameta.allure") version "4.3.0"
 }
 
 group = "org.example"
@@ -16,6 +17,21 @@ dependencies {
     implementation("io.rest-assured:rest-assured:5.5.6")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("com.codeborne:selenide:7.18.2")
+    implementation("io.qameta.allure:allure-java-commons:2.35.5")
+    implementation("io.qameta.allure:allure-selenide:2.35.5")
+    implementation("io.qameta.allure:allure-rest-assured:2.35.5")
+}
+
+allure {
+    version = "3.14.3"
+    adapter {
+        allureJavaVersion.set("2.35.5")
+        aspectjVersion.set("1.9.25.1")
+        resultsDir.set(layout.buildDirectory.dir("allure-results"))
+    }
+    report {
+        singleFile.set(true)
+    }
 }
 
 tasks.test {
@@ -38,6 +54,29 @@ tasks.register<Test>("runOnlyGreenTests") {
     group = "verification"
     description = "Прогон без падающих тестов и без багов приложения"
     useJUnitPlatform { excludeTags("fail", "bug", "requires_empty_catalog") }
+}
+
+tasks.register<Test>("runAllTests") {
+    group = "verification"
+    description = "UI+API все тесты с аллюром"
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        events("passed", "skipped", "failed")
+    }
+}
+
+tasks.register<Test>("runUiAndApiTests") {
+    group = "verification"
+    description = "UI+API тесты без багов с аллюром"
+    useJUnitPlatform {
+        includeTags("ui", "api")
+        excludeTags("fail", "bug", "requires_empty_catalog")
+    }
+    testLogging {
+        showStandardStreams = true
+        events("passed", "skipped", "failed")
+    }
 }
 
 tasks.register("runAllTests") {

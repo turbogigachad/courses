@@ -44,12 +44,14 @@ class FifthHomeworkThirdTaskTests {
     }
 
     // Генерация тестовых данных через API
+    @io.qameta.allure.Step("Создать через API товар '{name}' и запомнить его для удаления")
     private int createGoodViaApi(String name, double price) {
         int id = Methods.createGoodViaApi(name, price);
         createdGoodIds.add(id);
         return id;
     }
 
+    @io.qameta.allure.Step("Войти в админку с учётными данными из конфигурации")
     private void loginToAdmin() {
         new LoginPage().openAdminPage().login(Config.adminLogin(), Config.adminPassword());
     }

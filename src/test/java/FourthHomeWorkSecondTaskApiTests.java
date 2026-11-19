@@ -1,5 +1,6 @@
-import io.restassured.http.ContentType;
+import org.example.Config;
 import org.example.Methods;
+import org.example.steps.GoodsApiSteps;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -7,209 +8,100 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 
 @Tag("api")
 @Tag("fifth_homework")
 class FourthHomeWorkSecondTaskApiTests {
 
-    private static final String BASE_URI = org.example.Config.apiUrl();
-    private static final String ADMIN = org.example.Config.adminLogin();
-    private static final String PASSWORD = org.example.Config.adminPassword();
     private static final int NON_EXISTENT_ID = 99999999;
 
+    private final GoodsApiSteps apiSteps = new GoodsApiSteps();
     private final List<Integer> createdIds = new ArrayList<>();
 
     @BeforeEach
     void printStart() {
-        org.example.Config.printConfig();
+        Config.printConfig();
         Methods.printStart();
     }
 
     @AfterEach
     void cleanUp() {
         for (int id : createdIds) {
-            given()
-                    .auth().basic(ADMIN, PASSWORD)
-                    .when()
-                    .delete(BASE_URI + "/goods/" + id);
+            Methods.deleteGoodViaApi(id);
         }
         createdIds.clear();
         Methods.printEnd();
     }
 
-    private int addGood(String name, double price) {
-        int id = given()
-                .auth().basic(ADMIN, PASSWORD)
-                .contentType(ContentType.JSON)
-                .body(Map.of("name", name, "price", price))
-                .when()
-                .post(BASE_URI + "/goods/add")
-                .then()
-                .statusCode(200)
-                .extract()
-                .path("data.id");
+    @io.qameta.allure.Step("Создать товар '{name}' и запомнить его для удаления")
+    private int createGood(String name, double price) {
+        int id = apiSteps.addGood(name, price);
         createdIds.add(id);
         return id;
     }
 
     @Test
     void addGoodValidDataReturns200Test() {
-        int id = addGood("Товар для добавления", 120.5);
-
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .when()
-                .get(BASE_URI + "/goods/" + id)
-                .then()
-                .statusCode(200)
-                .body("name", equalTo("Товар для добавления"));
+        createGood("Товар для добавления", 120.5);
     }
 
     @Test
     void addGoodWithoutNameReturns400Test() {
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .contentType(ContentType.JSON)
-                .body("{\"price\":10}")
-                .when()
-                .post(BASE_URI + "/goods/add")
-                .then()
-                .statusCode(400)
-                .body("name", equalTo("Name cannot be empty"));
+        apiSteps.checkAddGoodWithoutNameReturns400();
     }
 
     @Test
     void addGoodWithNegativePriceReturns400Test() {
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .contentType(ContentType.JSON)
-                .body("{\"name\":\"Товар с минусом\",\"price\":-1}")
-                .when()
-                .post(BASE_URI + "/goods/add")
-                .then()
-                .statusCode(400)
-                .body("price", equalTo("Price can not be less, than 0"));
+        apiSteps.checkAddGoodWithNegativePriceReturns400();
     }
 
     @Test
     void getExistingGoodReturns200Test() {
-        int id = addGood("Товар для чтения", 77.0);
-
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .when()
-                .get(BASE_URI + "/goods/" + id)
-                .then()
-                .statusCode(200)
-                .body("id", equalTo(id))
-                .body("name", equalTo("Товар для чтения"))
-                .body("price", equalTo(77.0f));
+        String name = Config.initialProductName();
+        int id = apiSteps.findGoodIdByName(name);
+        apiSteps.checkExistingGood(id, name, Config.initialProductPrice());
     }
 
     @Tag("bug")
     @Test
-    //только прила отдает 500, я оставил падающий, в целом чтобы он зеленый стал можно код поменять на 500
+    // Приложение отдаёт 500 вместо 404, тест оставлен падающим для демонстрации бага
     void getNonExistentGoodReturns404Test() {
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .when()
-                .get(BASE_URI + "/goods/" + NON_EXISTENT_ID)
-                .then()
-                .statusCode(404);
+        apiSteps.checkNonExistentGoodReturns404(NON_EXISTENT_ID);
     }
 
     @Test
     void deleteExistingGoodReturns200Test() {
-        int id = addGood("Товар для удаления", 10.0);
+        int id = createGood("Товар для удаления", 10.0);
 
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .when()
-                .delete(BASE_URI + "/goods/" + id)
-                .then()
-                .statusCode(200);
-
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .when()
-                .get(BASE_URI + "/goods/list")
-                .then()
-                .statusCode(200)
-                .body("goods.id", not(hasItem(id)));
+        apiSteps.checkDeleteGoodStatus(id, 200);
+        apiSteps.checkGoodNotInList(id);
     }
 
     @Test
     void deleteNonExistentGoodReturns404Test() {
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .when()
-                .delete(BASE_URI + "/goods/" + NON_EXISTENT_ID)
-                .then()
-                .statusCode(404);
+        apiSteps.checkDeleteGoodStatus(NON_EXISTENT_ID, 404);
     }
 
     @Test
     void patchExistingGoodReturns200Test() {
-        int id = addGood("Товар до обновления", 50.0);
-
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .contentType(ContentType.JSON)
-                .body("{\"name\":\"Товар после обновления\",\"price\":60.0}")
-                .when()
-                .patch(BASE_URI + "/goods/" + id)
-                .then()
-                .statusCode(200)
-                .body("id", equalTo(id))
-                .body("name", equalTo("Товар после обновления"))
-                .body("price", equalTo(60.0f));
+        int id = createGood("Товар до обновления", 50.0);
+        apiSteps.checkUpdateGood(id, "Товар после обновления", 60.0);
     }
 
     @Test
     void patchGoodWithEmptyNameReturns400Test() {
-        int id = addGood("Товар для невалидного патча", 30.0);
-
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .contentType(ContentType.JSON)
-                .body("{\"name\":\"\"}")
-                .when()
-                .patch(BASE_URI + "/goods/" + id)
-                .then()
-                .statusCode(400)
-                .body("name", equalTo("Name cannot be empty"));
+        int id = createGood("Товар для невалидного патча", 30.0);
+        apiSteps.checkUpdateGoodWithEmptyNameReturns400(id);
     }
 
     @Test
     void patchNonExistentGoodReturns404Test() {
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .contentType(ContentType.JSON)
-                .body("{\"name\":\"Новое имя\",\"price\":1}")
-                .when()
-                .patch(BASE_URI + "/goods/" + NON_EXISTENT_ID)
-                .then()
-                .statusCode(404);
+        apiSteps.checkUpdateNonExistentGoodReturns404(NON_EXISTENT_ID);
     }
 
     @Test
     void getGoodsListReturns200Test() {
-        int id = addGood("Товар для списка", 15.0);
-
-        given()
-                .auth().basic(ADMIN, PASSWORD)
-                .when()
-                .get(BASE_URI + "/goods/list")
-                .then()
-                .statusCode(200)
-                .body("goods", notNullValue())
-                .body("goods.id", hasItem(id));
+        int id = createGood("Товар для списка", 15.0);
+        apiSteps.checkGoodsListReturns200AndContains(id);
     }
 }

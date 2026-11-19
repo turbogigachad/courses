@@ -1,5 +1,6 @@
 package org.example.pages.asserts;
 
+import io.qameta.allure.Step;
 import org.example.pages.AdminPage;
 
 import static com.codeborne.selenide.Condition.exactText;
@@ -13,6 +14,7 @@ public class AdminPageAssert {
         this.adminPage = adminPage;
     }
 
+    @Step("Проверить уведомление об успешном добавлении товара")
     public AdminPageAssert shouldHaveProductAddedNotification() {
         adminPage.getToastContainer().$(".toast")
                 .shouldBe(visible)
@@ -20,6 +22,7 @@ public class AdminPageAssert {
         return this;
     }
 
+    @Step("Проверить уведомление об обновлении товара {productId}")
     public AdminPageAssert shouldHaveProductUpdatedNotification(int productId) {
         adminPage.getToastContainer().$(".toast")
                 .shouldBe(visible)
