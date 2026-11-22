@@ -1,6 +1,8 @@
+import io.qameta.allure.Step;
 import org.example.Config;
 import org.example.Methods;
-import org.example.steps.GoodsApiSteps;
+import org.example.api.ApiAssert;
+import org.example.api.GoodsBasicApi;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -8,14 +10,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Tag("api")
 @Tag("fifth_homework")
 class FourthHomeWorkSecondTaskApiTests {
 
-    private static final int NON_EXISTENT_ID = 99999999;
-
-    private final GoodsApiSteps apiSteps = new GoodsApiSteps();
+    private final GoodsBasicApi goodsApi = new GoodsBasicApi();
     private final List<Integer> createdIds = new ArrayList<>();
 
     @BeforeEach
@@ -33,13 +34,14 @@ class FourthHomeWorkSecondTaskApiTests {
         Methods.printEnd();
     }
 
-    @io.qameta.allure.Step("Создать товар '{name}' и запомнить его для удаления")
+    @Step("Создать товар '{name}' и запомнить его для удаления")
     private int createGood(String name, double price) {
-        int id = apiSteps.addGood(name, price);
+        int id = ApiAssert.assertGoodCreated(goodsApi.addGood(name, price), name);
         createdIds.add(id);
         return id;
     }
 
+    @Tag("smoke")
     @Test
     void addGoodValidDataReturns200Test() {
         createGood("Товар для добавления", 120.5);
@@ -47,61 +49,91 @@ class FourthHomeWorkSecondTaskApiTests {
 
     @Test
     void addGoodWithoutNameReturns400Test() {
-        apiSteps.checkAddGoodWithoutNameReturns400();
+        ApiAssert.assertBadRequest(
+                goodsApi.addGood(Map.of("price", 10)),
+                "name",
+                "Name cannot be empty"
+        );
     }
 
     @Test
     void addGoodWithNegativePriceReturns400Test() {
-        apiSteps.checkAddGoodWithNegativePriceReturns400();
+        ApiAssert.assertBadRequest(
+                goodsApi.addGood("Товар с минусом", -1),
+                "price",
+                "Price can not be less, than 0"
+        );
     }
 
+    @Tag("smoke")
     @Test
     void getExistingGoodReturns200Test() {
         String name = Config.initialProductName();
-        int id = apiSteps.findGoodIdByName(name);
-        apiSteps.checkExistingGood(id, name, Config.initialProductPrice());
+        int id = goodsApi.findGoodIdByName(name);
+
+        ApiAssert.assertGood(goodsApi.getGood(id), id, name, Config.initialProductPrice());
     }
 
     @Tag("bug")
     @Test
     // Приложение отдаёт 500 вместо 404, тест оставлен падающим для демонстрации бага
     void getNonExistentGoodReturns404Test() {
-        apiSteps.checkNonExistentGoodReturns404(NON_EXISTENT_ID);
+        ApiAssert.assertNotFound(goodsApi.getGood(Config.nonExistentId()));
     }
 
+    @Tag("smoke")
     @Test
     void deleteExistingGoodReturns200Test() {
         int id = createGood("Товар для удаления", 10.0);
 
-        apiSteps.checkDeleteGoodStatus(id, 200);
-        apiSteps.checkGoodNotInList(id);
+        ApiAssert.assertStatus(goodsApi.deleteGood(id), 200);
+        ApiAssert.assertGoodNotInList(goodsApi.getGoodsList(), id);
     }
 
     @Test
     void deleteNonExistentGoodReturns404Test() {
-        apiSteps.checkDeleteGoodStatus(NON_EXISTENT_ID, 404);
+        ApiAssert.assertNotFound(goodsApi.deleteGood(Config.nonExistentId()));
     }
 
+    @Tag("smoke")
     @Test
     void patchExistingGoodReturns200Test() {
         int id = createGood("Товар до обновления", 50.0);
-        apiSteps.checkUpdateGood(id, "Товар после обновления", 60.0);
+        String newName = "Товар после обновления";
+        double newPrice = 60.0;
+
+        ApiAssert.assertGoodUpdated(
+                goodsApi.updateGood(id, Map.of("name", newName, "price", newPrice)),
+                id,
+                newName,
+                newPrice
+        );
     }
 
     @Test
     void patchGoodWithEmptyNameReturns400Test() {
         int id = createGood("Товар для невалидного патча", 30.0);
-        apiSteps.checkUpdateGoodWithEmptyNameReturns400(id);
+
+        ApiAssert.assertBadRequest(
+                goodsApi.updateGood(id, Map.of("name", "")),
+                "name",
+                "Name cannot be empty"
+        );
     }
 
     @Test
     void patchNonExistentGoodReturns404Test() {
-        apiSteps.checkUpdateNonExistentGoodReturns404(NON_EXISTENT_ID);
+        ApiAssert.assertNotFound(goodsApi.updateGood(
+                Config.nonExistentId(),
+                Map.of("name", "Новое имя", "price", 1)
+        ));
     }
 
+    @Tag("smoke")
     @Test
     void getGoodsListReturns200Test() {
         int id = createGood("Товар для списка", 15.0);
-        apiSteps.checkGoodsListReturns200AndContains(id);
+
+        ApiAssert.assertGoodsListContains(goodsApi.getGoodsList(), id);
     }
 }

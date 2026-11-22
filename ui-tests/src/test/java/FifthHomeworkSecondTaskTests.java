@@ -42,6 +42,7 @@ class FifthHomeworkSecondTaskTests {
     }
 
     // 2.1. Добавить товар через админку, выйти на витрину и проверить, что товар отображается
+    @Tag("smoke")
     @Test
     void addProductViaAdminAndCheckOnStorefrontTest() {
         createdGoodName = "товар " + System.currentTimeMillis();
@@ -55,6 +56,7 @@ class FifthHomeworkSecondTaskTests {
     }
 
     // 2.2. Добавить товар в корзину и проверить, что он отображается
+    @Tag("smoke")
     @Test
     void addProductToCartAndCheckItIsShownTest() {
         mainPage.openPage();
@@ -66,6 +68,7 @@ class FifthHomeworkSecondTaskTests {
     }
 
     // 2.3. Попытаться войти в админку с неверным логином и паролем
+    @Tag("smoke")
     @Test
     void loginToAdminWithWrongCredentialsTest() {
         LoginPage loginPage = new LoginPage();
@@ -86,10 +89,11 @@ class FifthHomeworkSecondTaskTests {
         mainPageAssert.shouldHaveCartItemsCount(1);
     }
 
-    // 2.5. Добавить в корзину товаров более чем на 300 рублей и нажать «Оформить заказ»
+    // 2.5. Добавить в корзину товаров сверх лимита и нажать «Оформить заказ»
+    @Tag("smoke")
     @Test
-    void orderOver300RublesShowsJsAlertTest() {
-        int quantity = 5;
+    void orderOverLimitShowsJsAlertTest() {
+        int quantity = Config.orderLimit() / (int) Config.initialProductPrice() + 1;
         int expectedTotal = (int) (Config.initialProductPrice() * quantity);
 
         mainPage.openPage()

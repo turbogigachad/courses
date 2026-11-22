@@ -53,14 +53,35 @@ public class Config {
         return Double.parseDouble(PROPS.getProperty("initial.product.price"));
     }
 
-    // Печать всех параметров перед запуском теста, кроме логина и пароля
+    public static String browser() {
+        return PROPS.getProperty("browser.name", "chrome");
+    }
+
+    public static boolean browserHeadless() {
+        return Boolean.parseBoolean(PROPS.getProperty("browser.headless", "true"));
+    }
+
+    public static String browserSize() {
+        return PROPS.getProperty("browser.size", "1280x900");
+    }
+
+    public static int nonExistentId() {
+        return Integer.parseInt(PROPS.getProperty("api.non-existent-id", "99999999"));
+    }
+
+    public static int orderLimit() {
+        return Integer.parseInt(PROPS.getProperty("order.limit", "300"));
+    }
+
     public static void printConfig() {
         System.out.println("=== Конфигурация запуска ===");
         System.out.println("URL стенда: " + standUrl());
         System.out.println("URL API: " + apiUrl());
+        System.out.println("Браузер: " + browser() + ", headless: " + browserHeadless() + ", размер: " + browserSize());
         System.out.println("Таймаут поиска элементов: " + elementTimeoutMs() + " мс");
         System.out.println("Режим логирования: " + loggingMode());
         System.out.println("Стартовый товар: " + initialProductName() + ", цена: " + initialProductPrice());
+        System.out.println("Лимит заказа: " + orderLimit());
         System.out.println("============================");
     }
 }

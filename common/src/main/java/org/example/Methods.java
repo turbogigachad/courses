@@ -114,7 +114,10 @@ public class Methods {
         Config.printConfig();
         ensureInitialProductViaApi();
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new", "--window-size=1280,900", "--no-sandbox", "--disable-dev-shm-usage");
+        if (Config.browserHeadless()) {
+            options.addArguments("--headless=new");
+        }
+        options.addArguments("--window-size=" + Config.browserSize(), "--no-sandbox", "--disable-dev-shm-usage");
         printStart();
         return new ChromeDriver(options);
     }
@@ -136,8 +139,9 @@ public class Methods {
         Config.printConfig();
         ensureInitialProductViaApi();
         Configuration.baseUrl = Config.standUrl();
-        Configuration.headless = true;
-        Configuration.browserSize = "1280x900";
+        Configuration.browser = Config.browser();
+        Configuration.headless = Config.browserHeadless();
+        Configuration.browserSize = Config.browserSize();
         Configuration.timeout = Config.elementTimeoutMs();
         SelenideLogger.addListener("AllureSelenide",
                 new AllureSelenide().screenshots(true).savePageSource(true));
