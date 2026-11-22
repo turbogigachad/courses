@@ -1,122 +1,76 @@
 plugins {
-    id("java")
-    id("io.qameta.allure") version "4.3.0"
+    id("base")
+    id("io.qameta.allure") version "4.3.0" apply false
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.assertj:assertj-core:3.27.3")
-    implementation("io.rest-assured:rest-assured:5.5.6")
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
-    implementation("com.codeborne:selenide:7.18.2")
-    implementation("io.qameta.allure:allure-java-commons:2.35.5")
-    implementation("io.qameta.allure:allure-selenide:2.35.5")
-    implementation("io.qameta.allure:allure-rest-assured:2.35.5")
-}
-
-allure {
-    version = "3.14.3"
-    adapter {
-        allureJavaVersion.set("2.35.5")
-        aspectjVersion.set("1.9.25.1")
-        resultsDir.set(layout.buildDirectory.dir("allure-results"))
-    }
-    report {
-        singleFile.set(true)
+allprojects {
+    group = "org.example"
+    version = "1.0-SNAPSHOT"
+    repositories {
+        mavenCentral()
     }
 }
 
-tasks.test {
-    useJUnitPlatform {
-        excludeTags("fail")
+subprojects {
+    apply(plugin = "java")
+    apply(plugin = "io.qameta.allure")
+
+    dependencies {
+        "testImplementation"(platform("org.junit:junit-bom:5.10.0"))
+        "testImplementation"("org.junit.jupiter:junit-jupiter")
+        "testImplementation"("org.assertj:assertj-core:3.27.3")
     }
-    testLogging {
-        showStandardStreams = true
-        events("passed", "skipped", "failed")
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+        testLogging {
+            showStandardStreams = true
+            events("passed", "skipped", "failed")
+        }
     }
 }
 
-tasks.register<Test>("runFailingTests") {
+tasks.register("smokeApiTests") {
     group = "verification"
-    description = "Падающие тесты(по заданию)"
-    useJUnitPlatform { includeTags("fail") }
+    description = "Smoke-прогон API-автотестов"
+    dependsOn(":api-tests:smokeApiTests")
 }
 
-tasks.register<Test>("runOnlyGreenTests") {
+tasks.register("smokeUiTests") {
     group = "verification"
-    description = "Прогон без падающих тестов и без багов приложения"
-    useJUnitPlatform { excludeTags("fail", "bug", "requires_empty_catalog") }
+    description = "Smoke-прогон UI-автотестов"
+    dependsOn(":ui-tests:smokeUiTests")
 }
 
-tasks.register<Test>("runAllTests") {
+tasks.register("smokeTests") {
     group = "verification"
-    description = "UI+API все тесты с аллюром"
-    useJUnitPlatform()
-    testLogging {
-        showStandardStreams = true
-        events("passed", "skipped", "failed")
-    }
+    description = "Общий Smoke-прогон API- и UI-автотестов"
+    dependsOn("smokeApiTests", "smokeUiTests")
 }
 
-tasks.register<Test>("runUiAndApiTests") {
+tasks.register("runOnlyGreenTests") {
     group = "verification"
-    description = "UI+API тесты без багов с аллюром"
-    useJUnitPlatform {
-        includeTags("ui", "api")
-        excludeTags("fail", "bug", "requires_empty_catalog")
-    }
-    testLogging {
-        showStandardStreams = true
-        events("passed", "skipped", "failed")
-    }
+    description = "Все тесты без намеренно падающих и известных багов"
+    dependsOn(":common:runOnlyGreenTests", ":api-tests:runOnlyGreenTests", ":ui-tests:runOnlyGreenTests")
 }
 
 tasks.register("runAllTests") {
     group = "verification"
-    description = "Запуск всех тестов"
-    dependsOn(tasks.test)
+    description = "Все тесты всех модулей, включая намеренно падающие"
+    dependsOn(":common:test", ":api-tests:test", ":ui-tests:test")
+}
+
+tasks.register("runUiAndApiTests") {
+    group = "verification"
+    description = "UI- и API-тесты без известных багов"
+    dependsOn(":api-tests:runApiTests", ":ui-tests:runUiTests")
 }
 
 tasks.register("afterTests") {
     group = "verification"
-    description = "Информация о завершении теста"
+    description = "Информация о завершении всех тестов"
     dependsOn("runAllTests")
     doLast {
         println("Test run is over")
     }
-}
-
-tasks.register<Test>("runBooleanTests") {
-    group = "verification"
-    description = "Тесты с тегом boolean"
-    useJUnitPlatform { includeTags("boolean") }
-}
-
-tasks.register<Test>("runListTests") {
-    group = "verification"
-    description = "Тесты с тегом list"
-    useJUnitPlatform { includeTags("list") }
-}
-
-tasks.register<Test>("runApiTests") {
-    group = "verification"
-    description = "Все API-тесты"
-    useJUnitPlatform {
-        includeTags("api")
-        excludeTags("fail", "bug")
-    }
-}
-
-tasks.register<Test>("runStringTests") {
-    group = "verification"
-    description = "Тесты с тегом string"
-    useJUnitPlatform { includeTags("string") }
 }

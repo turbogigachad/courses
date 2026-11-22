@@ -2,6 +2,7 @@ package org.example.pages.asserts;
 
 import com.codeborne.selenide.SelenideElement;
 import io.qameta.allure.Step;
+import org.example.Config;
 import org.example.pages.MainPage;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -59,7 +60,8 @@ public class MainPageAssert {
 
     @Step("Проверить Alert о превышении лимита заказа для суммы {expectedTotal}")
     public MainPageAssert shouldHaveOrderOverLimitAlert(int expectedTotal) {
-        confirm("[SmartShop]: Денег не хватает! Сумма " + expectedTotal + " ₽ превышает лимит 300 ₽.");
+        confirm("[SmartShop]: Денег не хватает! Сумма " + expectedTotal
+                + " ₽ превышает лимит " + Config.orderLimit() + " ₽.");
         return this;
     }
 
